@@ -18,7 +18,9 @@ public class Signature {
 		BigInteger kInverse = k.modInverse(keys.getQ());
 		BigInteger r = keys.getG().modPow(k, keys.getP()).mod(keys.getQ());
 		BigInteger sha1Value = sha1Message(message);
+
 		BigInteger s = keys.getPrivateKey().multiply(r).add(sha1Value).multiply(kInverse).mod(keys.getQ());
+
 		System.out.println("k:" + k);
 		System.out.println("kInv:" + kInverse);
 		System.out.println("r:" + r);
@@ -37,7 +39,8 @@ public class Signature {
 		BigInteger w = s.modInverse(keys.getQ());
 		BigInteger u1 = w.multiply(sha1Message(message)).mod(keys.getQ());
 		BigInteger u2 = w.multiply(r).mod(keys.getQ());
-		BigInteger v = keys.getG().modPow(u1, keys.getQ()).multiply((keys.getPublicKey().modPow(u2, keys.getP()).mod(keys.getQ())));
+		BigInteger v = keys.getPublicKey().modPow(u2, keys.getP()).multiply(keys.getG().modPow(u1, keys.getP()))
+				.mod(keys.getP()).mod(keys.getQ());
 		v = v.mod(keys.getQ());
 		System.out.println("v:" + v);
 		return v.equals(r);
