@@ -20,11 +20,6 @@ public class Signature {
 		BigInteger sha1Value = sha1Message(message);
 
 		BigInteger s = keys.getPrivateKey().multiply(r).add(sha1Value).multiply(kInverse).mod(keys.getQ());
-
-		System.out.println("k:" + k);
-		System.out.println("kInv:" + kInverse);
-		System.out.println("r:" + r);
-		System.out.println("s:" + s);
 		result[0] = s;
 		result[1] = r;
 		if (r.equals(BigInteger.ZERO) || s.equals(BigInteger.ZERO))
