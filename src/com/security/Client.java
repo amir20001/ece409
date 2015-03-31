@@ -18,9 +18,7 @@ public class Client {
 		String ipAddress = getIp();
 
 		try {
-			System.out.println("setting up connection");
 			Socket connection = new Socket(ipAddress, Util.PORT);
-			System.out.println("sending data");
 			Util.sendOverConnection(connection, identity + "," + userPublicKey);
 			String data = Util.readFromConnection(connection);
 			String[] tokens = data.split(",");
@@ -35,9 +33,13 @@ public class Client {
 			} else {
 				System.out.println("Mini-certificate is not valid");
 			}
+			System.out.println("The mini-certificate issued by the CA is:");
+			System.out.println(message);
+			System.out.println(r);
+			System.out.println(s);
 
 		} catch (UnknownHostException e) {
-			System.out.println("could not connect to server exiting");
+			System.out.println("could not connect to server, exiting");
 			System.exit(1);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -75,7 +77,7 @@ public class Client {
 	}
 
 	private static boolean verifiySignature(String sString, String rString, String message) {
-		Keys keys = Keys.getInstance();
+		PublicKeys keys = PublicKeys.getInstance();
 		BigInteger s = new BigInteger(sString);
 		BigInteger r = new BigInteger(rString);
 		if (Util.isLessThan(r, BigInteger.ZERO) || Util.isGreaterThan(r, keys.q))
