@@ -87,7 +87,6 @@ public class Client {
 		BigInteger u2 = w.multiply(r).mod(keys.q);
 		BigInteger v = keys.publicKey.modPow(u2, keys.p).multiply(keys.g.modPow(u1, keys.p)).mod(keys.p).mod(keys.q);
 		v = v.mod(keys.q);
-		System.out.println("v:" + v);
 		return v.equals(r);
 	}
 

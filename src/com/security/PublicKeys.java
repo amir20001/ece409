@@ -39,6 +39,8 @@ public class PublicKeys {
 			return false;
 		} else if (!g.modPow(q, p).equals(new BigInteger("1"))) {
 			return false;
+		} else if (q.remainder(p.subtract(BigInteger.ONE)).equals(BigInteger.ZERO)) {
+			return false;
 		}
 		return true;
 	}
