@@ -3,14 +3,14 @@ package com.security;
 import java.math.BigInteger;
 
 public class Generation {
-
+	private static Generation instance = null;
 	BigInteger p;
 	BigInteger q;
 	BigInteger g;
 	BigInteger publicKey;
 	BigInteger privateKey;
 
-	public Generation() {
+	private Generation() {
 		p = new BigInteger("16819938870120985392012908511330240702317396271716022919731854548482310101838"
 				+ "67243519643163012786421435674358104484724658871432229345451549430057142651244452442479"
 				+ "88777471773193847131514083030740407543233616696550197643519458134465700691569680905568"
@@ -27,6 +27,13 @@ public class Generation {
 				+ "5516985144944984920010138492897272069257160");
 	}
 
+	public static Generation getInstance() {
+		if (instance == null) {
+			instance = new Generation();
+		}
+		return instance;
+	}
+
 	public boolean verifyValues() {
 		if (p.bitLength() != 1024) {
 			return false;
@@ -38,46 +45,6 @@ public class Generation {
 			return false;
 		}
 		return true;
-	}
-
-	public BigInteger getP() {
-		return p;
-	}
-
-	public void setP(BigInteger p) {
-		this.p = p;
-	}
-
-	public BigInteger getQ() {
-		return q;
-	}
-
-	public void setQ(BigInteger q) {
-		this.q = q;
-	}
-
-	public BigInteger getG() {
-		return g;
-	}
-
-	public void setG(BigInteger g) {
-		this.g = g;
-	}
-
-	public BigInteger getPublicKey() {
-		return publicKey;
-	}
-
-	public void setPublicKey(BigInteger publicKey) {
-		this.publicKey = publicKey;
-	}
-
-	public BigInteger getPrivateKey() {
-		return privateKey;
-	}
-
-	public void setPrivateKey(BigInteger privateKey) {
-		this.privateKey = privateKey;
 	}
 
 }

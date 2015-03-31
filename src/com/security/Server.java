@@ -1,33 +1,70 @@
 package com.security;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Server {
+	private static final String PATTERN = "^(\\d){4}-(\\d){2}-(\\d){2}$";
 
 	public static void main(String[] args) {
 		try {
 			System.out.println("Waiting for user request...");
 			ServerSocket serverSocket = new ServerSocket(Util.PORT);
-			Socket client = serverSocket.accept();
-			System.out.println("reading line");
-			BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-			String line = null;
+			Socket connection = serverSocket.accept();
+			String data = Util.readFromConnection(connection);
+			System.out.println("data:" + data);
+			String[] tokens = data.split(",");
+			String identity = tokens[0];
+			String userPublicKey = tokens[1];
+			String expiryDate = getExpiry();
+			String message = new StringBuilder().append(identity).append(userPublicKey).append(expiryDate).toString();
+			BigInteger[] rs = generateSignature(message);
+			String response = new StringBuilder().append(identity).append(",").append(userPublicKey).append(",")
+					.append(expiryDate).append(",").append(rs[0]).append(",").append(rs[1]).toString();
+			Util.sendOverConnection(connection, response);
 
-			while ((line = in.readLine()) != null) {
-				System.out.print(line);
-				client.close();
-			}
-
+			connection.close();
+			serverSocket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	private static String getExpiry() {
+		String date = "";
+		while (!validateDate(date)) {
+			System.out.println("Enter the expiry date of the certificate (yyyy-mm-dd):");
+			date = Util.readLine();
+		}
+		return date;
+	}
+
+	private static boolean validateDate(final String date) {
+		Pattern pattern = Pattern.compile(PATTERN);
+		Matcher matcher = pattern.matcher(date);
+		return matcher.matches();
+	}
+
+	private static BigInteger[] generateSignature(String message) {
+		Generation keys = Generation.getInstance();
+		BigInteger result[] = new BigInteger[2];
+		BigInteger k = (new BigDecimal(Math.random()).multiply(new BigDecimal(keys.q.toString()))).toBigInteger();
+		BigInteger kInverse = k.modInverse(keys.q);
+		BigInteger r = keys.g.modPow(k, keys.p).mod(keys.q);
+		BigInteger sha1Value = Util.sha1Message(message);
+
+		BigInteger s = keys.privateKey.multiply(r).add(sha1Value).multiply(kInverse).mod(keys.q);
+		result[0] = s;
+		result[1] = r;
+		if (r.equals(BigInteger.ZERO) || s.equals(BigInteger.ZERO))
+			return generateSignature(message);
+		else
+			return result;
 	}
 
 }

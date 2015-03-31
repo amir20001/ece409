@@ -1,10 +1,10 @@
 package com.security;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,14 +14,16 @@ public class Client {
 
 	public static void main(String[] args) {
 		String identity = getIdentity();
+		String userPublicKey = generatePublicKey(identity);
 		String ipAddress = getIp();
 
 		try {
 			System.out.println("setting up connection");
 			Socket connection = new Socket(ipAddress, Util.PORT);
 			System.out.println("sending data");
-			sendToServer(connection, "test1");
-			//sendToServer(connection, "test2");
+			Util.sendOverConnection(connection, identity + "," + userPublicKey);
+			String data = Util.readFromConnection(connection);
+			System.out.println("data: " + data);
 		} catch (UnknownHostException e) {
 			System.out.println("could not connect to server exiting");
 			System.exit(1);
@@ -55,12 +57,9 @@ public class Client {
 		return matcher.matches();
 	}
 
-	private static void sendToServer(Socket conn, String identity) {
-		try {
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-			bw.write(identity + "\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	private static String generatePublicKey(String identity) {
+		BigInteger publicKey = BigInteger.probablePrime(128 * 8, new Random(identity.hashCode()));
+		return publicKey.toString();
 	}
+
 }
