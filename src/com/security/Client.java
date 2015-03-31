@@ -23,7 +23,19 @@ public class Client {
 			System.out.println("sending data");
 			Util.sendOverConnection(connection, identity + "," + userPublicKey);
 			String data = Util.readFromConnection(connection);
-			System.out.println("data: " + data);
+			String[] tokens = data.split(",");
+			identity = tokens[0];
+			userPublicKey = tokens[1];
+			String expiryDate = tokens[2];
+			String s = tokens[3];
+			String r = tokens[4];
+			String message = new StringBuilder().append(identity).append(userPublicKey).append(expiryDate).toString();
+			if (verifiySignature(s, r, message)) {
+				System.out.println("Accept the CA's signature and the mini-certificate is valid!");
+			} else {
+				System.out.println("Mini-certificate is not valid");
+			}
+
 		} catch (UnknownHostException e) {
 			System.out.println("could not connect to server exiting");
 			System.exit(1);
@@ -60,6 +72,21 @@ public class Client {
 	private static String generatePublicKey(String identity) {
 		BigInteger publicKey = BigInteger.probablePrime(128 * 8, new Random(identity.hashCode()));
 		return publicKey.toString();
+	}
+
+	private static boolean verifiySignature(String sString, String rString, String message) {
+		Keys keys = Keys.getInstance();
+		BigInteger s = new BigInteger(sString);
+		BigInteger r = new BigInteger(rString);
+		if (Util.isLessThan(r, BigInteger.ZERO) || Util.isGreaterThan(r, keys.q))
+			return false;
+		BigInteger w = s.modInverse(keys.q);
+		BigInteger u1 = w.multiply(Util.sha1Message(message)).mod(keys.q);
+		BigInteger u2 = w.multiply(r).mod(keys.q);
+		BigInteger v = keys.publicKey.modPow(u2, keys.p).multiply(keys.g.modPow(u1, keys.p)).mod(keys.p).mod(keys.q);
+		v = v.mod(keys.q);
+		System.out.println("v:" + v);
+		return v.equals(r);
 	}
 
 }

@@ -51,7 +51,8 @@ public class Server {
 	}
 
 	private static BigInteger[] generateSignature(String message) {
-		Generation keys = Generation.getInstance();
+		Keys keys = Keys.getInstance();
+		keys.verifyValues();
 		BigInteger result[] = new BigInteger[2];
 		BigInteger k = (new BigDecimal(Math.random()).multiply(new BigDecimal(keys.q.toString()))).toBigInteger();
 		BigInteger kInverse = k.modInverse(keys.q);
